@@ -48,4 +48,5 @@ ENV STRUCTURA_POLICY_PATH="/app/policy.yaml"
 
 EXPOSE 4000
 
-CMD ["node", "packages/proxy/dist/index.js", "stdio"]
+ENTRYPOINT ["node", "packages/proxy/dist/index.js"]
+CMD ["stdio"]
