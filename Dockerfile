@@ -1,5 +1,5 @@
 # Stage 1: Build Upstream Binary
-FROM golang:1.22 AS upstream-builder
+FROM golang:1.24 AS upstream-builder
 WORKDIR /src
 # Pinned commit discovered from razorpay/razorpay-mcp-server main
 RUN git clone https://github.com/razorpay/razorpay-mcp-server.git . && \
