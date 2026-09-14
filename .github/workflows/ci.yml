@@ -35,4 +35,9 @@ jobs:
           # We don't have a chain.test.ts yet but adding placeholder for adversarial suite
           
       - name: Build Docker Image
-        run: docker build -t structura-proxy .
+        run: |
+          docker build --progress=plain -t structura-proxy . > build.log 2>&1
+          if [ $? -ne 0 ]; then
+            cat build.log
+            exit 1
+          fi
