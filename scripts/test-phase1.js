@@ -13,7 +13,7 @@ async function runTest(amount, expectBlock) {
       STRUCTURA_POLICY_PATH: policyPath,
       RZP_KEY_ID: 'mock_key_123',
       RZP_KEY_SECRET: 'mock_secret_123',
-      RZP_TOOLSETS: 'payments'
+      RZP_TOOLSETS: 'payments,refunds'
     };
 
     const child = spawn('node', [tsxPath, proxyPath, 'stdio'], {
@@ -59,12 +59,12 @@ async function runTest(amount, expectBlock) {
   });
 }
 
-async function runMissingPolicyTest() {
+async function runMissingPolicyTest(filename) {
   return new Promise((resolve) => {
     const proxyEnv = {
       STRUCTURA_UPSTREAM_CMD: 'razorpay-mcp-server',
       PATH: path.join(__dirname, '..', '.upstream', 'bin') + path.delimiter + process.env.PATH,
-      STRUCTURA_POLICY_PATH: path.join(__dirname, '..', 'config', 'does_not_exist.yaml')
+      STRUCTURA_POLICY_PATH: path.join(__dirname, '..', 'config', filename)
     };
 
     const child = spawn('node', [tsxPath, proxyPath, 'stdio'], {
@@ -97,12 +97,22 @@ async function main() {
   console.log(`Proxy stderr (Should show blocked):\n${res2.stderr.trim()}`);
   
   console.log('\n--- Test 3: Missing policy file (Fail Closed) ---');
-  const res3 = await runMissingPolicyTest();
+  const res3 = await runMissingPolicyTest('does_not_exist.yaml');
   console.log(`Exit code: ${res3.code}`);
   console.log(`Proxy stderr:\n${res3.stderr.trim()}`);
   
   if (res3.code !== 1 || !res3.stderr.includes('Policy file not found')) {
     console.error('Failed missing policy test!');
+    process.exit(1);
+  }
+
+  console.log('\n--- Test 4: Invalid policy file schema (Fail Closed) ---');
+  const res4 = await runMissingPolicyTest('policy.invalid.yaml');
+  console.log(`Exit code: ${res4.code}`);
+  console.log(`Proxy stderr:\n${res4.stderr.trim()}`);
+
+  if (res4.code !== 1 || !res4.stderr.includes('invalid_value')) {
+    console.error('Failed invalid policy test! Output did not contain Zod validation error.');
     process.exit(1);
   }
 }

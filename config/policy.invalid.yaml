@@ -1,0 +1,7 @@
+version: 1
+rules:
+  - tool: create_refund
+    max_amount: 1500000
+    action_above_max: yolo # invalid enum
+  - tool: "*"
+    action: allow

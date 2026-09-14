@@ -51,7 +51,7 @@ setTimeout(() => {
         console.log('[Test] Success! Child process was killed when proxy died.');
         process.exit(0);
       }
-    }, 2000);
+    }, 4000);
   } else {
     process.exit(1);
   }

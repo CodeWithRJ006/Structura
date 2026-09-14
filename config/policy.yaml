@@ -1,0 +1,10 @@
+version: 1
+rules:
+  - tool: create_refund
+    max_amount: 1500000          # in paisa — amounts above this need approval
+    action_above_max: require_approval
+  - tool: capture_payment
+    max_amount: 5000000
+    action_above_max: deny
+  - tool: "*"                    # fallback/default rule
+    action: allow
