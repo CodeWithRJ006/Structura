@@ -1,6 +1,9 @@
 import { StdioBridge } from './proxy/stdioBridge';
 import { logger } from './observability/logger';
 
+import { loadPolicy } from './policy/loader';
+import path from 'path';
+
 function main() {
   const args = process.argv.slice(2);
   
@@ -26,8 +29,13 @@ function main() {
     targetArgs.push('--toolsets', process.env.RZP_TOOLSETS);
   }
   
+  // Load policy 
+  const defaultPolicyPath = path.resolve(__dirname, '..', '..', '..', 'config', 'policy.yaml');
+  const policyPath = process.env.STRUCTURA_POLICY_PATH || defaultPolicyPath;
+  const policy = loadPolicy(policyPath);
+
   logger.info(`Starting proxy wrapping ${targetCommand}`);
-  const bridge = new StdioBridge(targetCommand, targetArgs);
+  const bridge = new StdioBridge(targetCommand, targetArgs, policy);
   bridge.start();
 }
 
