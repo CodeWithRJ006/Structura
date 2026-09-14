@@ -7,22 +7,27 @@ RUN git clone https://github.com/razorpay/razorpay-mcp-server.git . && \
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /out/razorpay-mcp-server ./cmd/razorpay-mcp-server
 
 # Stage 2: Node Build & Native Dependencies
-FROM node:20-alpine AS proxy-builder
+FROM node:22-alpine AS proxy-builder
 WORKDIR /app
+
+# Copy root config and package manifests
 COPY package*.json ./
 COPY packages/proxy/package*.json ./packages/proxy/
 COPY packages/dashboard/package*.json ./packages/dashboard/
+
 # Compile better-sqlite3 native bindings in Alpine
 RUN apk add --no-cache python3 make g++ 
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm ci
 COPY . .
 RUN npm run build -w packages/proxy
 RUN npm run build -w packages/dashboard
-# Re-install prod dependencies to trim dev footprint
-RUN npm ci --omit=dev
+
+# Prune dev dependencies (including puppeteer, typescript) so they aren't copied to the final image
+RUN npm prune --omit=dev
 
 # Stage 3: Runtime
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # Copy the upstream binary
