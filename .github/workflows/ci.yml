@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run build --workspaces --if-present
+
+      - name: Unit Tests
+        run: npm test --workspaces --if-present
+
+      - name: Adversarial Tests
+        run: |
+          # Specifically run the structuring detector and verify-chain tests
+          # Assuming test files are under packages/proxy/src/**/*.test.ts
+          node --test --import tsx packages/proxy/src/structuring/detector.test.ts
+          # We don't have a chain.test.ts yet but adding placeholder for adversarial suite
+          
+      - name: Build Docker Image
+        run: docker build -t structura-proxy .

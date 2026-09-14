@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import { getPending, getStats, getApproval, resolveApproval } from './queue';
 import { logger } from '../observability/logger';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export function startApi(injectRequest: (rawRequest: string, reqId: number) => Promise<any>) {
   const app = express();
@@ -57,8 +59,18 @@ export function startApi(injectRequest: (rawRequest: string, reqId: number) => P
     }
   });
 
+  // Serve static dashboard if STRUCTURA_DASHBOARD_PATH is set
+  const dashboardPath = process.env.STRUCTURA_DASHBOARD_PATH;
+  if (dashboardPath && fs.existsSync(dashboardPath)) {
+    app.use(express.static(dashboardPath));
+    // SPA fallback
+    app.get('*', (req, res) => res.sendFile(path.join(dashboardPath, 'index.html')));
+    logger.info(`Serving static dashboard from ${dashboardPath}`);
+  }
+
   const port = process.env.STRUCTURA_API_PORT || 4000;
   app.listen(port, () => {
     logger.info(`Dashboard API running on port ${port}`);
   });
 }
+

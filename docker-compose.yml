@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  structura:
+    build: .
+    ports:
+      - "4000:4000"
+    volumes:
+      - structura_data:/data
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  structura_data:
