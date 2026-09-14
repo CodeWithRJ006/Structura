@@ -64,7 +64,7 @@ export function startApi(injectRequest: (rawRequest: string, reqId: number) => P
   if (dashboardPath && fs.existsSync(dashboardPath)) {
     app.use(express.static(dashboardPath));
     // SPA fallback
-    app.get('*', (req, res) => res.sendFile(path.join(dashboardPath, 'index.html')));
+    app.get(/.*/, (req, res) => res.sendFile(path.join(dashboardPath, 'index.html')));
     logger.info(`Serving static dashboard from ${dashboardPath}`);
   }
 
