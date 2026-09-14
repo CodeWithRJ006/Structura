@@ -1,17 +1,17 @@
-import { StdioBridge } from './stdioBridge';
+import { StdioBridge } from './proxy/stdioBridge';
+import { logger } from './observability/logger';
 
 function main() {
   const args = process.argv.slice(2);
   
   if (args.length === 0) {
-    console.error(`[Structura] Usage: structura <target_command> [args...]`);
+    logger.error(`Usage: structura <target_command> [args...]`);
     process.exit(1);
   }
   
   const targetCommand = args[0];
   const targetArgs = args.slice(1);
   
-  // Inject credentials and toolsets from Structura's env vars
   if (process.env.RZP_KEY_ID) {
     targetArgs.push('--key', process.env.RZP_KEY_ID);
   }
@@ -22,6 +22,7 @@ function main() {
     targetArgs.push('--toolsets', process.env.RZP_TOOLSETS);
   }
   
+  logger.info(`Starting proxy wrapping ${targetCommand}`);
   const bridge = new StdioBridge(targetCommand, targetArgs);
   bridge.start();
 }

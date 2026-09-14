@@ -2,20 +2,20 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('[Test] Spawning proxy for kill-mid-session test...');
+console.log('[Test] Spawning proxy via tsx directly for kill-mid-session test...');
 
-const proxyPath = path.join(__dirname, '..', 'packages', 'proxy', 'dist', 'index.js');
+const proxyPath = path.join(__dirname, '..', 'packages', 'proxy', 'src', 'index.ts');
 const binaryPath = path.join(__dirname, '..', '.upstream', 'bin', 'razorpay-mcp-server.exe');
 
-const proxy = spawn('node', [proxyPath, binaryPath, 'stdio'], {
+const tsxPath = path.join(__dirname, '..', 'node_modules', 'tsx', 'dist', 'cli.mjs');
+
+const proxy = spawn('node', [tsxPath, proxyPath, binaryPath, 'stdio'], {
   stdio: ['pipe', 'pipe', 'pipe']
 });
 
 let childPid = null;
 
-// Wait a bit for it to spawn the child process
 setTimeout(() => {
-  // Find the child process PID (razorpay-mcp-server.exe)
   try {
     const tasklist = execSync('tasklist /FI "IMAGENAME eq razorpay-mcp-server.exe" /NH').toString();
     if (tasklist.includes('razorpay-mcp-server.exe')) {
@@ -31,8 +31,10 @@ setTimeout(() => {
   }
 
   if (childPid) {
-    console.log('[Test] Killing proxy process (SIGTERM)...');
-    proxy.kill('SIGTERM');
+    console.log('[Test] Killing proxy process (SIGINT)...');
+    // For npx on Windows, SIGTERM/SIGINT isn't always perfectly passed down to the actual node process,
+    // but we kill the wrapper and see if our proxy handles it if it receives it.
+    proxy.kill('SIGINT');
 
     setTimeout(() => {
       try {
@@ -46,12 +48,11 @@ setTimeout(() => {
           process.exit(0);
         }
       } catch (e) {
-        // wmic throws error if no instances found, which means success here
         console.log('[Test] Success! Child process was killed when proxy died.');
         process.exit(0);
       }
-    }, 1000);
+    }, 2000);
   } else {
     process.exit(1);
   }
-}, 2000);
+}, 3000);

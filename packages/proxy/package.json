@@ -4,11 +4,15 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "dev": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "tsx": "^4.23.13"
+  }
 }

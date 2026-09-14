@@ -3,10 +3,11 @@ const path = require('path');
 
 console.log('[Test] Spawning proxy for malformed-JSON test...');
 
-const proxyPath = path.join(__dirname, '..', 'packages', 'proxy', 'dist', 'index.js');
+const proxyPath = path.join(__dirname, '..', 'packages', 'proxy', 'src', 'index.ts');
 const binaryPath = path.join(__dirname, '..', '.upstream', 'bin', 'razorpay-mcp-server.exe');
+const tsxPath = path.join(__dirname, '..', 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
-const proxy = spawn('node', [proxyPath, binaryPath, 'stdio'], {
+const proxy = spawn('node', [tsxPath, proxyPath, binaryPath, 'stdio'], {
   stdio: ['pipe', 'pipe', 'pipe']
 });
 
