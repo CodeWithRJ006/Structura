@@ -38,7 +38,7 @@ COPY --from=proxy-builder /app/packages/proxy/package.json ./packages/proxy/pack
 COPY --from=proxy-builder /app/packages/dashboard/dist ./packages/dashboard/dist
 
 # Need policy config and package root for structural refs if any
-COPY policy.yaml ./policy.yaml
+COPY config/policy.yaml ./policy.yaml
 COPY packages/proxy/package.json ./packages/proxy/package.json
 
 ENV STRUCTURA_UPSTREAM_CMD="razorpay-mcp-server"
