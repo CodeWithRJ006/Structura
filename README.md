@@ -54,13 +54,17 @@ structura/
 - **Audit Log Tamper - Row Deletion:** Caught `seq` gap at `seq 2`.
 - **Audit Log Tamper - Smart Attacker:** Caught broken linkage hash at `seq 3` when attacker manually recomputed the hash of tampered `seq 2` without rewriting the rest of the chain.
 
+## Live Deployment
+The proxy and dashboard are currently live on a Render free-tier Web Service at:
+**https://structura-mlsv.onrender.com**
+
 ## Production Gaps
 - **Fixed-window boundary evasion:** Attackers can bypass structuring rules by carefully timing requests across rolling boundaries.
 - **No cross-instance/multi-replica structuring state:** Because state is in-memory, horizontal scaling of the proxy will fragment structuring counters. It relies on single-process deployment.
 - **Approval results aren't relayed back to the agent:** When an agent is placed in `REQUIRE_APPROVAL`, they get an immediate error (pending review). When human approval happens minutes later, the action executes against Razorpay, but the result is not pushed to the now-disconnected MCP client.
 - **No dashboard auth:** The API is unprotected, relying on network-layer isolation.
 - **Tamper-evident, not tamper-proof:** An attacker with unrestricted DB access can rewrite the entire hash-chain from scratch.
-- **Free-tier deployment's disk persistence:** Not yet deployed to a persistent host - verified via Docker build in CI; live URL pending. (When deployed to free tiers like Render Web Service, it does not support persistent disks, meaning `structura.db` will be wiped on every redeploy or sleep cycle.)
+- **Free-tier deployment's disk persistence:** The Render free-tier Web Service does not support attaching persistent disks (Volumes). This means `structura.db` operates on an ephemeral filesystem and the audit log / approval queue will be wiped on every container restart or sleep cycle.
 - **No /metrics Prometheus endpoint:** Only a simple `/stats` JSON endpoint exists.
 
 ## Setup / running locally
