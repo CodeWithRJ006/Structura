@@ -35,12 +35,24 @@ jobs:
           # We don't have a chain.test.ts yet but adding placeholder for adversarial suite
           
       - name: Build Docker Image
-        run: |
-          docker build --progress=plain -t structura-proxy . > build.log 2>&1 || true
+        run: docker build -t structura-proxy .
 
-      - name: Upload Docker Log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-build-log
-          path: build.log
+      - name: Run and Test Docker Container
+        run: |
+          # 1. Start in background to test API
+          docker run --name proxy -d -p 4000:4000 -e RZP_KEY_ID=mock -e RZP_KEY_SECRET=mock structura-proxy
+          
+          # Wait for boot
+          sleep 5
+          
+          # Check API
+          curl -f http://localhost:4000/stats
+          
+          # Clean up background container
+          docker rm -f proxy
+          
+          # 2. Test stdio MCP interaction directly via pipe
+          echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | docker run -i -e RZP_KEY_ID=mock -e RZP_KEY_SECRET=mock structura-proxy > response.txt
+          
+          cat response.txt
+          grep -q 'fetch_all_payments' response.txt

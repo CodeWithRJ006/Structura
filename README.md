@@ -60,7 +60,7 @@ structura/
 - **Approval results aren't relayed back to the agent:** When an agent is placed in `REQUIRE_APPROVAL`, they get an immediate error (pending review). When human approval happens minutes later, the action executes against Razorpay, but the result is not pushed to the now-disconnected MCP client.
 - **No dashboard auth:** The API is unprotected, relying on network-layer isolation.
 - **Tamper-evident, not tamper-proof:** An attacker with unrestricted DB access can rewrite the entire hash-chain from scratch.
-- **Free-tier deployment's disk persistence:** The live deployment runs on a Render Web Service free-tier. **It does not support persistent disks.** `structura.db` will be wiped on every redeploy, sleep, or wake cycle.
+- **Free-tier deployment's disk persistence:** Not yet deployed to a persistent host - verified via Docker build in CI; live URL pending. (When deployed to free tiers like Render Web Service, it does not support persistent disks, meaning `structura.db` will be wiped on every redeploy or sleep cycle.)
 - **No /metrics Prometheus endpoint:** Only a simple `/stats` JSON endpoint exists.
 
 ## Setup / running locally
