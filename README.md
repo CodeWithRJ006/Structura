@@ -63,14 +63,12 @@ structura/
 The proxy and dashboard are currently live on a Render free-tier Web Service at:
 **https://structura-mlsv.onrender.com**
 
-## Production Gaps
-- **Fixed-window boundary evasion:** Attackers can bypass structuring rules by carefully timing requests across rolling boundaries.
-- **No cross-instance/multi-replica structuring state:** Because state is in-memory, horizontal scaling of the proxy will fragment structuring counters. It relies on single-process deployment.
-- **Approval results aren't relayed back to the agent:** When an agent is placed in `REQUIRE_APPROVAL`, they get an immediate error (pending review). When human approval happens minutes later, the action executes against Razorpay, but the result is not pushed to the now-disconnected MCP client.
-- **No dashboard auth:** The API is unprotected, relying on network-layer isolation.
-- **Tamper-evident, not tamper-proof:** An attacker with unrestricted DB access can rewrite the entire hash-chain from scratch.
+## Production Gaps & Protocol Constraints
+- **Heuristic Ceilings on Structuring Detection:** While migrating from a fixed-window to a sliding-window reduces trivial boundary evasion, rule-based detection inherently hits a ceiling. A patient adversary can always pace transactions under the threshold. True resolution requires moving from single-signal rules to clustering analysis (counterparty diversity, velocity) and anomaly scoring.
+- **State Fragmentation vs. Availability Tradeoffs:** The proxy currently uses an in-memory `Map` for structuring counters. Scaling horizontally requires an external store like Redis. However, introducing Redis introduces a critical availability question for a security control plane: if Redis is unreachable, the system must **fail closed** (deny/hold), explicitly prioritizing security over availability.
+- **The "Dangling State" MCP Protocol Limitation:** MCP is strictly synchronous per-call over `stdio`, lacking a native push channel. When a tool hits `REQUIRE_APPROVAL`, the agent receives an immediate failure. The standard workaround within MCP constraints is a **status-poll tool**—giving the agent a ticket ID to query asynchronously, rather than treating this as a proxy bug.
+- **Tamper-Evident vs. Tamper-Proof:** The SQLite hash-chain mathematically catches row tampering or deletion. However, an attacker with full filesystem access can drop the table and rewrite history entirely. The pragmatic V2 fix short of full blockchain anchoring is periodically publishing hash checkpoints to an external append-only store (e.g., an S3 bucket with Object Lock or a signed git commit).
 - **Free-tier deployment's disk persistence:** The Render free-tier Web Service does not support attaching persistent disks (Volumes). This means `structura.db` operates on an ephemeral filesystem and the audit log / approval queue will be wiped on every container restart or sleep cycle.
-- **No /metrics Prometheus endpoint:** Only a simple `/stats` JSON endpoint exists.
 
 ## Setup / running locally
 ```bash
