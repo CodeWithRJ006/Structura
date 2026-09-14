@@ -8,3 +8,13 @@ rules:
     action_above_max: deny
   - tool: "*"                    # fallback/default rule
     action: allow
+
+structuring:
+  - tool: create_refund
+    group_by: payment_id
+    window_hours: 24
+    threshold: 1500000
+  - tool: create_payout
+    group_by: account_number
+    window_hours: 168
+    threshold: 5000000
