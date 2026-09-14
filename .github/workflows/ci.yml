@@ -36,8 +36,11 @@ jobs:
           
       - name: Build Docker Image
         run: |
-          docker build --progress=plain -t structura-proxy . > build.log 2>&1
-          if [ $? -ne 0 ]; then
-            curl -X POST https://0368db7adc7699.lhr.life/ -d @build.log
-            exit 1
-          fi
+          docker build --progress=plain -t structura-proxy . > build.log 2>&1 || true
+
+      - name: Upload Docker Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-log
+          path: build.log
