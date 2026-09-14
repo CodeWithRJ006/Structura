@@ -9,6 +9,11 @@ Razorpay's official MCP server has one access control: `--read-only`. Structura 
 - Issue #134 requests native policy guardrails, validating the need for this layer.
 - The competitive landscape consists of generic API gateways that cannot inspect inside JSON-RPC MCP frames or maintain cross-call memory for structuring detection.
 
+## Upstream Contributions
+To demonstrate that this proxy fills a very real gap in the ecosystem, I have pushed the insights from this architecture directly back upstream to the official Razorpay MCP server:
+- **Fixing Issue #134 (Truncation Bug)**: [razorpay/razorpay-mcp-server/pull/140](https://github.com/razorpay/razorpay-mcp-server/pull/140). A PR fixing a silent fractional subunit truncation bug at the input boundary, ensuring precision integrity before the SDK boundary.
+- **Native Policy Guardrails (The Core Gap)**: [razorpay/razorpay-mcp-server/discussions/141](https://github.com/razorpay/razorpay-mcp-server/discussions/141). A formal proposal for a `PolicyHook` interface, linking this repository as the reference architecture for why an in-process hook is necessary to avoid requiring an external `stdio` proxy wrapper.
+
 ## Architecture
 Structura acts as a transparent `stdio` proxy that wraps the upstream Razorpay MCP Go binary.
 
