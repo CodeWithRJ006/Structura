@@ -14,8 +14,8 @@ COPY packages/proxy/package*.json ./packages/proxy/
 COPY packages/dashboard/package*.json ./packages/dashboard/
 # Compile better-sqlite3 native bindings in Alpine
 RUN apk add --no-cache python3 make g++ 
-COPY . .
 RUN npm ci
+COPY . .
 RUN npm run build -w packages/proxy
 RUN npm run build -w packages/dashboard
 # Re-install prod dependencies to trim dev footprint
