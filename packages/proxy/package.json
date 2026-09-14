@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "bin": {
+    "structura": "./dist/cli.js"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",

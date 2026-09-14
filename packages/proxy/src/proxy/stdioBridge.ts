@@ -7,6 +7,7 @@ import { StructuringState } from '../structuring/state';
 import { checkStructuring } from '../structuring/detector';
 import { insertPending } from '../approval/queue';
 import { notifyPending } from '../approval/notify';
+import { appendEntry } from '../audit/log';
 
 export class StdioBridge {
   private child: ChildProcess | null = null;
@@ -77,6 +78,23 @@ export class StdioBridge {
               }
             }
           }
+          
+          // Summarize args for audit log
+          const argsSummaryObj: any = {};
+          if (args.payment_id) argsSummaryObj.payment_id = args.payment_id;
+          if (args.amount) argsSummaryObj.amount = args.amount;
+          if (args.currency) argsSummaryObj.currency = args.currency;
+          if (args.contact) argsSummaryObj.contact = args.contact;
+          if (args.order_id) argsSummaryObj.order_id = args.order_id;
+          
+          appendEntry({
+            timestamp: Date.now(),
+            tool,
+            decision: decision.type,
+            source,
+            reason: (decision as any).reason || null,
+            args_summary: JSON.stringify(argsSummaryObj)
+          });
           
           if (decision.type === 'REQUIRE_APPROVAL') {
             const ticketId = insertPending(tool, args, raw, source, decision.reason);

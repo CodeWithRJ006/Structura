@@ -24,6 +24,18 @@ export function initDb() {
       created_at INTEGER NOT NULL,
       resolved_at INTEGER
     );
+
+    CREATE TABLE IF NOT EXISTS audit_log (
+      seq INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp INTEGER NOT NULL,
+      tool TEXT NOT NULL,
+      decision TEXT NOT NULL,
+      source TEXT NOT NULL,
+      reason TEXT,
+      args_summary TEXT NOT NULL,
+      prev_hash TEXT NOT NULL,
+      entry_hash TEXT NOT NULL
+    );
   `);
 }
 
