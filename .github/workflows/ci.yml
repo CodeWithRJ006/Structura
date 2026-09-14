@@ -46,7 +46,7 @@ jobs:
           sleep 5
           
           # Check API
-          curl -f http://localhost:4000/stats
+          curl -f http://localhost:4000/stats || (docker logs proxy && exit 1)
           
           # Clean up background container
           docker rm -f proxy
