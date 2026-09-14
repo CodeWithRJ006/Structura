@@ -5,16 +5,26 @@ import { evaluate } from '../policy/engine';
 import { PolicyConfig } from '../policy/schema';
 import { StructuringState } from '../structuring/state';
 import { checkStructuring } from '../structuring/detector';
+import { insertPending } from '../approval/queue';
+import { notifyPending } from '../approval/notify';
 
 export class StdioBridge {
   private child: ChildProcess | null = null;
   private structState = new StructuringState();
+  private pendingResolvers = new Map<number, (res: any) => void>();
 
   constructor(
     private targetCommand: string, 
     private targetArgs: string[],
     private policy: PolicyConfig
   ) {}
+
+  public injectRequest(rawRequest: string, reqId: number): Promise<any> {
+    return new Promise((resolve) => {
+      this.pendingResolvers.set(reqId, resolve);
+      this.child!.stdin!.write(rawRequest + '\n');
+    });
+  }
 
   public start() {
     this.child = spawn(this.targetCommand, this.targetArgs, {
@@ -47,6 +57,7 @@ export class StdioBridge {
           const args = parsed.params?.arguments || {};
           
           let decision = evaluate(tool, args, this.policy);
+          let source: 'policy' | 'structuring' = 'policy';
           logger.info(`Phase 1 Policy decision for ${tool}: ${decision.type}`, { tool, decision });
           
           if (decision.type === 'ALLOW') {
@@ -54,6 +65,7 @@ export class StdioBridge {
             if (structDecision.type === 'REQUIRE_APPROVAL') {
               logger.info(`Phase 2 Structuring decision for ${tool}: REQUIRE_APPROVAL`, { tool, decision: structDecision });
               decision = structDecision;
+              source = 'structuring';
             } else {
               logger.info(`Phase 2 Structuring decision for ${tool}: ALLOW`, { tool, decision: structDecision });
               // Record structuring state since it's going through
@@ -65,7 +77,21 @@ export class StdioBridge {
             }
           }
           
-          if (decision.type === 'DENY' || decision.type === 'REQUIRE_APPROVAL') {
+          if (decision.type === 'REQUIRE_APPROVAL') {
+            const ticketId = insertPending(tool, args, raw, source, decision.reason);
+            notifyPending(ticketId, tool, decision.reason, args);
+            
+            const errResponse = {
+              jsonrpc: '2.0',
+              id: parsed.id,
+              result: {
+                content: [{ type: 'text', text: `Action is pending human review (Ticket: ${ticketId}). Reason: ${decision.reason}` }],
+                isError: true
+              }
+            };
+            process.stdout.write(JSON.stringify(errResponse) + '\n');
+            return; // Do not forward this request to upstream
+          } else if (decision.type === 'DENY') {
             const errResponse = {
               jsonrpc: '2.0',
               id: parsed.id,
@@ -75,7 +101,7 @@ export class StdioBridge {
               }
             };
             process.stdout.write(JSON.stringify(errResponse) + '\n');
-            return; // Do not forward this request to upstream
+            return; // Do not forward
           }
         }
       }
@@ -87,6 +113,13 @@ export class StdioBridge {
     const handleServerFrame = (raw: string, parsed: any | null) => {
       if (parsed) {
         logger.debug('Frame relayed', { direction: 'upstream->client', method: parsed.method, id: parsed.id });
+        
+        if (parsed.id !== undefined && this.pendingResolvers.has(parsed.id)) {
+          const resolve = this.pendingResolvers.get(parsed.id)!;
+          this.pendingResolvers.delete(parsed.id);
+          resolve(parsed);
+          return; // Do NOT pipe this response to original client stdout
+        }
       }
       // Phase 0: Just relay raw untouched
       process.stdout.write(raw + '\n');

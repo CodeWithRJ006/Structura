@@ -1,7 +1,8 @@
 import { StdioBridge } from './proxy/stdioBridge';
 import { logger } from './observability/logger';
-
 import { loadPolicy } from './policy/loader';
+import { initDb } from './approval/db';
+import { startApi } from './approval/api';
 import path from 'path';
 
 function main() {
@@ -34,9 +35,15 @@ function main() {
   const policyPath = process.env.STRUCTURA_POLICY_PATH || defaultPolicyPath;
   const policy = loadPolicy(policyPath);
 
+  // Init SQLite DB
+  initDb();
+
   logger.info(`Starting proxy wrapping ${targetCommand}`);
   const bridge = new StdioBridge(targetCommand, targetArgs, policy);
   bridge.start();
+
+  // Start API server
+  startApi((rawRequest, reqId) => bridge.injectRequest(rawRequest, reqId));
 }
 
 main();
