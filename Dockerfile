@@ -29,6 +29,7 @@ RUN npm prune --omit=dev
 # Stage 3: Runtime
 FROM node:22-alpine
 WORKDIR /app
+RUN mkdir -p /data
 
 # Copy the upstream binary
 COPY --from=upstream-builder /out/razorpay-mcp-server /usr/local/bin/razorpay-mcp-server
