@@ -21,6 +21,7 @@ export class StdioBridge {
 
   public injectRequest(rawRequest: string, reqId: number): Promise<any> {
     return new Promise((resolve) => {
+      logger.debug('Frame relayed (injected)', { direction: 'client->upstream', id: reqId });
       this.pendingResolvers.set(reqId, resolve);
       this.child!.stdin!.write(rawRequest + '\n');
     });

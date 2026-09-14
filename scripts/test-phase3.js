@@ -91,15 +91,27 @@ async function main() {
   console.log('\n--- Test 2: POST /approve/:id ---');
   let res = await fetch(`http://localhost:4001/approve/${ticketId}`, { method: 'POST' });
   let data = await res.json();
-  console.log('API Response:', JSON.stringify(data));
+  console.log('API Response (1st call):', JSON.stringify(data));
   await sleep(500);
   
-  console.log('Upstream stderr during approval execution:');
+  console.log('Upstream stderr during 1st approval execution:');
   console.log(proxy.getStderr().trim());
   
   let approvedRow = db.prepare("SELECT * FROM approvals WHERE id = ?").get(ticketId);
   console.log(`DB Row Status: ${approvedRow.status}`);
   console.log(`DB Row Result JSON: ${approvedRow.result_json}`);
+
+  proxy.clearLogs();
+
+  console.log('\n--- Test 2.5: Double Approval Rejection ---');
+  let res2 = await fetch(`http://localhost:4001/approve/${ticketId}`, { method: 'POST' });
+  let data2 = await res2.json();
+  console.log(`API HTTP Status: ${res2.status}`);
+  console.log('API Response (2nd call):', JSON.stringify(data2));
+  await sleep(500);
+  
+  console.log('Upstream stderr during 2nd approval execution (Should be EMPTY):');
+  console.log(proxy.getStderr().trim() || '<empty>');
 
   proxy.clearLogs();
 
