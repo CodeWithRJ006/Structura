@@ -54,12 +54,10 @@ test('detector - False-positive check: 5x ₹10,000 refunds against 5 different 
   assert.strictEqual(flagged, false);
 });
 
-test('detector - Cross-key evasion: (Known Limitation) API keys are currently NOT tracked', () => {
+test('detector - Cross-key evasion: Caught incidentally via payment_id grouping regardless of API key', () => {
   // Our implementation inherently aggregates by group_key (payment_id) regardless of API key.
-  // Therefore, cross-key evasion fails (we DO detect it) if they use the same payment_id.
-  // If the prompt meant "if the same payment is hit from two different API keys, v1 does not need to catch that"
-  // it implies the keys might be tracked. Since we don't pass API key down, it aggregates everything.
-  // We document this limitation/feature here:
+  // Therefore, cross-key splitting is caught incidentally, since detection groups by payment_id
+  // and does not partition state by the caller's identity.
   const state = new StructuringState();
   
   // Call 1 from API key A
@@ -69,6 +67,7 @@ test('detector - Cross-key evasion: (Known Limitation) API keys are currently NO
 
   // Call 2 from API key B (same payment_id)
   const decisionB = checkStructuring('create_refund', { payment_id: 'pay_cross', amount: 1000000 }, state, mockConfig);
+  
   // We DO catch it because we don't partition by API key.
   assert.strictEqual(decisionB.type, 'REQUIRE_APPROVAL');
 });

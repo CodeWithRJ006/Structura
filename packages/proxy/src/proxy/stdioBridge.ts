@@ -55,6 +55,7 @@ export class StdioBridge {
               logger.info(`Phase 2 Structuring decision for ${tool}: REQUIRE_APPROVAL`, { tool, decision: structDecision });
               decision = structDecision;
             } else {
+              logger.info(`Phase 2 Structuring decision for ${tool}: ALLOW`, { tool, decision: structDecision });
               // Record structuring state since it's going through
               const structRule = this.policy.structuring?.find(r => r.tool === tool);
               if (structRule && typeof args.amount === 'number') {
