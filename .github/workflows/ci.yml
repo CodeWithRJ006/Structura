@@ -39,8 +39,20 @@ jobs:
 
       - name: Run and Test Docker Container
         run: |
-          docker run --name proxy structura-proxy --key mock --secret mock --toolsets payments stdio || true
-          docker logs proxy || true
+          # 1. Start in background to test API
+          docker run --name proxy -d -p 4000:4000 structura-proxy --key mock --secret mock --toolsets payments stdio
+          
+          # Wait for boot
+          sleep 5
+          
+          # Check API
+          curl -f http://localhost:4000/stats || (docker logs proxy && exit 1)
+          
+          # Clean up background container
+          docker rm -f proxy
+          
+          # 2. Test stdio MCP interaction directly via pipe
+          echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | docker run -i structura-proxy --key mock --secret mock --toolsets payments stdio > response.txt
           
           cat response.txt
           grep -q 'fetch_all_payments' response.txt
