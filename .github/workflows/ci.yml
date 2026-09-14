@@ -40,7 +40,7 @@ jobs:
       - name: Run and Test Docker Container
         run: |
           # 1. Start in background to test API
-          docker run --name proxy -d -p 4000:4000 structura-proxy --key mock --secret mock --toolsets payments stdio
+          docker run --name proxy -id -p 4000:4000 structura-proxy --key mock --secret mock --toolsets payments stdio
           
           # Wait for boot
           sleep 5
