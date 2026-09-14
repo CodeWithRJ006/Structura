@@ -4,12 +4,13 @@ const path = require('path');
 console.log('[Test Real] Spawning proxy via tsx directly...');
 
 const proxyPath = path.join(__dirname, '..', 'packages', 'proxy', 'src', 'index.ts');
-const binaryPath = path.join(__dirname, '..', '.upstream', 'bin', 'razorpay-mcp-server.exe');
 
-const proxy = spawn('npx', ['tsx', proxyPath, binaryPath, 'stdio'], {
+const proxy = spawn('npx', ['tsx', proxyPath, 'stdio'], {
   stdio: ['pipe', 'pipe', 'inherit'],
   env: {
     ...process.env,
+    PATH: path.join(__dirname, '..', '.upstream', 'bin') + path.delimiter + process.env.PATH,
+    STRUCTURA_UPSTREAM_CMD: 'razorpay-mcp-server',
     RZP_KEY_ID: 'rzp_test_mockkeyid123',
     RZP_KEY_SECRET: 'mocksecret456',
     RZP_TOOLSETS: 'payments'

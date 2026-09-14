@@ -4,13 +4,17 @@ import { logger } from './observability/logger';
 function main() {
   const args = process.argv.slice(2);
   
-  if (args.length === 0) {
-    logger.error(`Usage: structura <target_command> [args...]`);
-    process.exit(1);
+  let targetCommand = process.env.STRUCTURA_UPSTREAM_CMD;
+  let targetArgs = args;
+
+  if (!targetCommand) {
+    if (args.length === 0) {
+      logger.error(`Usage: structura <target_command> [args...] or set STRUCTURA_UPSTREAM_CMD`);
+      process.exit(1);
+    }
+    targetCommand = args[0];
+    targetArgs = args.slice(1);
   }
-  
-  const targetCommand = args[0];
-  const targetArgs = args.slice(1);
   
   if (process.env.RZP_KEY_ID) {
     targetArgs.push('--key', process.env.RZP_KEY_ID);

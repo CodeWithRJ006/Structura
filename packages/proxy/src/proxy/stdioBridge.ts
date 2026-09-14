@@ -16,12 +16,18 @@ export class StdioBridge {
       throw new Error("Failed to initialize pipes to child process");
     }
 
-    const handleClientFrame = (raw: string, parsed: unknown | null) => {
+    const handleClientFrame = (raw: string, parsed: any | null) => {
+      if (parsed) {
+        logger.debug('Frame relayed', { direction: 'client->upstream', method: parsed.method, id: parsed.id });
+      }
       // Phase 0: Just relay raw untouched
       this.child!.stdin!.write(raw + '\n');
     };
 
-    const handleServerFrame = (raw: string, parsed: unknown | null) => {
+    const handleServerFrame = (raw: string, parsed: any | null) => {
+      if (parsed) {
+        logger.debug('Frame relayed', { direction: 'upstream->client', method: parsed.method, id: parsed.id });
+      }
       // Phase 0: Just relay raw untouched
       process.stdout.write(raw + '\n');
     };
