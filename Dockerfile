@@ -30,7 +30,6 @@ COPY --from=upstream-builder /out/razorpay-mcp-server /usr/local/bin/razorpay-mc
 
 # Copy production node_modules and built packages
 COPY --from=proxy-builder /app/node_modules ./node_modules
-COPY --from=proxy-builder /app/packages/proxy/node_modules ./packages/proxy/node_modules
 COPY --from=proxy-builder /app/packages/proxy/dist ./packages/proxy/dist
 COPY --from=proxy-builder /app/packages/proxy/package.json ./packages/proxy/package.json
 
